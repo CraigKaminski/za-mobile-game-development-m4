@@ -71,8 +71,15 @@ export class Game extends Phaser.State {
 
     if (this.cursor.left.isDown || this.player.data.isMovingLeft) {
       this.player.body.velocity.x = -this.RUNNING_SPEED;
+      this.player.scale.setTo(1, 1);
+      this.player.play('walking');
     } else if (this.cursor.right.isDown || this.player.data.isMovingRight) {
       this.player.body.velocity.x = this.RUNNING_SPEED;
+      this.player.scale.setTo(-1, 1);
+      this.player.play('walking');
+    } else {
+      this.player.animations.stop();
+      this.player.frame = 3;
     }
 
     if ((this.cursor.up.isDown || this.player.data.mustJump) && this.player.body.touching.down) {
