@@ -2,8 +2,11 @@ export class Game extends Phaser.State {
   private readonly RUNNING_SPEED = 180;
   private readonly JUMPING_SPEED = 550;
   private actionButton: Phaser.Button;
+  private barrelCreator: Phaser.TimerEvent;
+  private barrels: Phaser.Group;
   private cursor: Phaser.CursorKeys;
   private fires: Phaser.Group;
+  private goal: Phaser.Sprite;
   private ground: Phaser.Sprite;
   private leftArrow: Phaser.Button;
   private levelData: any;
@@ -65,21 +68,37 @@ export class Game extends Phaser.State {
 
     this.fires.setAll('body.allowGravity', false);
 
+    this.goal = this.add.sprite(this.levelData.goal.x, this.levelData.goal.y, 'goal');
+    this.physics.arcade.enable(this.goal);
+    this.goal.body.allowGravity = false;
+
     this.player = this.add.sprite(this.levelData.playerStart.x, this.levelData.playerStart.y, 'player', 3);
     this.player.anchor.setTo(0.5);
     this.player.animations.add('walking', [0, 1, 2, 1], 6, true);
     this.physics.arcade.enableBody(this.player);
+    this.player.body.collideWorldBounds = true;
 
     this.camera.follow(this.player);
 
     this.createOnscreenControls();
+
+    this.barrels = this.add.group();
+    this.barrels.enableBody = true;
+
+    this.createBarrel();
+    this.barrelCreator = this.time.events.loop(Phaser.Timer.SECOND * this.levelData.barrelFrequency, this.createBarrel, this);
   }
 
   public update() {
     this.physics.arcade.collide(this.player, this.ground);
     this.physics.arcade.collide(this.player, this.platforms);
 
+    this.physics.arcade.collide(this.barrels, this.ground);
+    this.physics.arcade.collide(this.barrels, this.platforms);
+    this.physics.arcade.overlap(this.player, this.barrels, this.killPlayer, undefined, this);
+
     this.game.physics.arcade.overlap(this.player, this.fires, this.killPlayer, undefined, this);
+    this.game.physics.arcade.overlap(this.player, this.goal, this.win, undefined, this);
 
     this.player.body.velocity.x = 0;
 
@@ -100,6 +119,12 @@ export class Game extends Phaser.State {
       this.player.body.velocity.y = -this.JUMPING_SPEED;
       this.player.data.mustJump = false;
     }
+
+    this.barrels.forEach((element: Phaser.Sprite) => {
+      if (element.x < 10 && element.y > 600) {
+        element.kill();
+      }
+    }, this);
   }
 
   private createOnscreenControls() {
@@ -158,5 +183,23 @@ export class Game extends Phaser.State {
 
   private killPlayer(player: Phaser.Sprite, fire: Phaser.Sprite) {
     this.state.start('Game');
+  }
+
+  private win(player: Phaser.Sprite, goal: Phaser.Sprite) {
+    this.state.start('Game');
+  }
+
+  private createBarrel() {
+    let barrel: Phaser.Sprite = this.barrels.getFirstExists(false);
+
+    if (!barrel) {
+      barrel = this.barrels.create(0, 0, 'barrel');
+    }
+
+    barrel.body.collideWorldBounds = true;
+    barrel.body.bounce.set(1, 0);
+
+    barrel.reset(this.levelData.goal.x, this.levelData.goal.y);
+    barrel.body.velocity.x = this.levelData.barrelSpeed;
   }
 }
