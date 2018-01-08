@@ -18,6 +18,8 @@ export class Game extends Phaser.State {
     this.physics.arcade.gravity.y = 1000;
 
     this.cursor = this.input.keyboard.createCursorKeys();
+
+    this.world.setBounds(0, 0, 360, 700);
   }
 
   public preload() {
@@ -32,7 +34,7 @@ export class Game extends Phaser.State {
   }
 
   public create() {
-    this.ground = this.add.sprite(0, 500, 'ground');
+    this.ground = this.add.sprite(0, 638, 'ground');
     this.physics.arcade.enableBody(this.ground);
     this.ground.body.allowGravity = false;
     this.ground.body.immovable = true;
@@ -54,10 +56,12 @@ export class Game extends Phaser.State {
     this.platforms.setAll('body.immovable', true);
     this.platforms.setAll('body.allowGravity', false);
 
-    this.player = this.add.sprite(100, 200, 'player', 3);
+    this.player = this.add.sprite(10, 545, 'player', 3);
     this.player.anchor.setTo(0.5);
     this.player.animations.add('walking', [0, 1, 2, 1], 6, true);
     this.physics.arcade.enableBody(this.player);
+
+    this.camera.follow(this.player);
 
     this.createOnscreenControls();
   }
@@ -88,6 +92,10 @@ export class Game extends Phaser.State {
     this.leftArrow.alpha = 0.5;
     this.rightArrow.alpha = 0.5;
     this.actionButton.alpha = 0.5;
+
+    this.leftArrow.fixedToCamera = true;
+    this.rightArrow.fixedToCamera = true;
+    this.actionButton.fixedToCamera = true;
 
     this.actionButton.events.onInputDown.add(() => {
       this.player.data.mustJump = true;
