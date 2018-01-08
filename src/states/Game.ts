@@ -5,6 +5,7 @@ export class Game extends Phaser.State {
   private cursor: Phaser.CursorKeys;
   private ground: Phaser.Sprite;
   private leftArrow: Phaser.Button;
+  private levelData: any;
   private platforms: Phaser.Group;
   private player: Phaser.Sprite;
   private rightArrow: Phaser.Button;
@@ -31,6 +32,7 @@ export class Game extends Phaser.State {
     this.load.image('barrel', 'images/barrel.png');
     this.load.spritesheet('player', 'images/player_spritesheet.png', 28, 30, 5, 1, 1);
     this.load.spritesheet('fire', 'images/fire_spritesheet.png', 20, 21, 2, 1, 1);
+    this.load.text('level', 'data/level.json');
   }
 
   public create() {
@@ -39,24 +41,19 @@ export class Game extends Phaser.State {
     this.ground.body.allowGravity = false;
     this.ground.body.immovable = true;
 
-    const platformData = [
-      {x: 0, y: 430},
-      {x: 45, y: 560},
-      {x: 90, y: 290},
-      {x: 0, y: 140},
-    ];
+    this.levelData = JSON.parse(this.game.cache.getText('level'));
 
     this.platforms = this.add.group();
     this.platforms.enableBody = true;
 
-    platformData.forEach((element) => {
+    this.levelData.platformData.forEach((element: {x: number, y: number}) => {
       this.platforms.create(element.x, element.y, 'platform');
     });
 
     this.platforms.setAll('body.immovable', true);
     this.platforms.setAll('body.allowGravity', false);
 
-    this.player = this.add.sprite(10, 545, 'player', 3);
+    this.player = this.add.sprite(this.levelData.playerStart.x, this.levelData.playerStart.y, 'player', 3);
     this.player.anchor.setTo(0.5);
     this.player.animations.add('walking', [0, 1, 2, 1], 6, true);
     this.physics.arcade.enableBody(this.player);
