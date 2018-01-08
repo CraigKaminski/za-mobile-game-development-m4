@@ -5,7 +5,7 @@ export class Game extends Phaser.State {
   private cursor: Phaser.CursorKeys;
   private ground: Phaser.Sprite;
   private leftArrow: Phaser.Button;
-  private platform: Phaser.Sprite;
+  private platforms: Phaser.Group;
   private player: Phaser.Sprite;
   private rightArrow: Phaser.Button;
 
@@ -37,10 +37,22 @@ export class Game extends Phaser.State {
     this.ground.body.allowGravity = false;
     this.ground.body.immovable = true;
 
-    this.platform = this.add.sprite(0, 300, 'platform');
-    this.physics.arcade.enableBody(this.platform);
-    this.platform.body.allowGravity = false;
-    this.platform.body.immovable = true;
+    const platformData = [
+      {x: 0, y: 430},
+      {x: 45, y: 560},
+      {x: 90, y: 290},
+      {x: 0, y: 140},
+    ];
+
+    this.platforms = this.add.group();
+    this.platforms.enableBody = true;
+
+    platformData.forEach((element) => {
+      this.platforms.create(element.x, element.y, 'platform');
+    });
+
+    this.platforms.setAll('body.immovable', true);
+    this.platforms.setAll('body.allowGravity', false);
 
     this.player = this.add.sprite(100, 200, 'player', 3);
     this.player.anchor.setTo(0.5);
@@ -52,7 +64,7 @@ export class Game extends Phaser.State {
 
   public update() {
     this.physics.arcade.collide(this.player, this.ground);
-    this.physics.arcade.collide(this.player, this.platform);
+    this.physics.arcade.collide(this.player, this.platforms);
 
     this.player.body.velocity.x = 0;
 
