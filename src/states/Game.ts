@@ -3,6 +3,7 @@ export class Game extends Phaser.State {
   private readonly JUMPING_SPEED = 550;
   private actionButton: Phaser.Button;
   private cursor: Phaser.CursorKeys;
+  private fires: Phaser.Group;
   private ground: Phaser.Sprite;
   private leftArrow: Phaser.Button;
   private levelData: any;
@@ -53,6 +54,17 @@ export class Game extends Phaser.State {
     this.platforms.setAll('body.immovable', true);
     this.platforms.setAll('body.allowGravity', false);
 
+    this.fires = this.add.group();
+    this.fires.enableBody = true;
+
+    this.levelData.fireData.forEach((element: {x: number, y: number}) => {
+      const fire = this.fires.create(element.x, element.y, 'fire');
+      fire.animations.add('fire', [0, 1], 4, true);
+      fire.play('fire');
+    });
+
+    this.fires.setAll('body.allowGravity', false);
+
     this.player = this.add.sprite(this.levelData.playerStart.x, this.levelData.playerStart.y, 'player', 3);
     this.player.anchor.setTo(0.5);
     this.player.animations.add('walking', [0, 1, 2, 1], 6, true);
@@ -66,6 +78,8 @@ export class Game extends Phaser.State {
   public update() {
     this.physics.arcade.collide(this.player, this.ground);
     this.physics.arcade.collide(this.player, this.platforms);
+
+    this.game.physics.arcade.overlap(this.player, this.fires, this.killPlayer, undefined, this);
 
     this.player.body.velocity.x = 0;
 
@@ -140,5 +154,9 @@ export class Game extends Phaser.State {
     this.rightArrow.events.onInputOut.add(() => {
       this.player.data.isMovingRight = false;
     });
+  }
+
+  private killPlayer(player: Phaser.Sprite, fire: Phaser.Sprite) {
+    this.state.start('Game');
   }
 }
